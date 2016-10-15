@@ -6,6 +6,10 @@ BASE_DIR=$(dirname $0)
 cd $BASE_DIR
 BASE_DIR=$(pwd)
 
+show_usage() {
+  echo "Usage: $(basename $0) [-d,--debug] [-h,--help]"
+}
+
 cprint() {
   COLOR=$1
   MSG=$2
@@ -89,13 +93,8 @@ check_and_replace() {
 bootstrap_module() {
   MODULE=$1
 
-  if [ ! -f "$MODULE/.bootstrap" ]; then
-    cprint " \! No bootstrap file found in module"
-    return 1
-  fi
-
+  RET=0
   IFS=$'\r\n'
-  FILES_COPIED=0
   for line in $(cat $MODULE/.bootstrap | grep -Ev '^\s*#'); do
     FILE=$(echo $line | awk '{print $1}')
     TARGET=$(echo $line | awk '{print $2}')
@@ -118,32 +117,76 @@ bootstrap_module() {
     # Check that target exist
     if [ ! -e "${TARGET}" ]; then
       cprint red "   ! Error: target does not exist ($TARGET)"
-      return 1
+      RET=1
+      continue
     fi 
 
-    check_and_replace $FILE $TARGET && \
-      FILES_COPIED=$(($FILES_COPIED + 1))
+    check_and_replace $FILE $TARGET || RET=1
   done
 
-  if [ $FILES_COPIED -eq 0 ]; then
-    cprint red " *** Module $MODULE / No file has been bootstraped ***"
-  else
-    cprint green " *** Module $MODULE / $FILES_COPIED files has been bootstraped ***"
-  fi
-  echo
+  return $RET
 }
 
 #
 # Main script
 #
 
+# Get arguments
+OPTS=$(getopt -o 'dh' --long 'debug,help' -n $(basename $0) -- "$@")
+eval set -- $OPTS
+
+while true; do
+  case "$1" in
+    -d|--debug) DEBUG=1 ;;
+    -h|--help) show_usage ; exit 0 ;;
+    --) shift ; break ;;
+    *) echo "Internal error!"; exit 1 ;;
+  esac
+  shift
+done
+
 # For each submodule, read .bootstrap file and do the bootstrap magic
 for module in $(ls .); do
   if [ "$module" = "." ] || [ "$module" = ".." ]; then
     continue
   fi
+
+
   if [ -d "$module" ]; then
     cprint cyan "[ Entering in submodule : $(basename $module) ]"
-    bootstrap_module $module
+
+    SUCCESS=0
+    # Execute standard boostrap if .bootstrap file exists
+    if [ -f $module/.bootstrap ]; then
+      cprint white "Calling standard bootstrap"
+      bootstrap_module $module
+      if [ $? -eq 0 ]; then
+        SUCCESS=1
+      else 
+        cprint red "*** Some errors occured during standard bootstrap. Please review. ***"
+        echo
+        continue
+      fi
+    fi
+
+    # Execute custom bootstrap if a bootstrap script exists
+    if [ -x $module/bootstrap ]; then
+      cprint white "Executing custom bootstrap script"
+      $module/bootstrap
+      if [ $? -eq 0 ]; then
+        SUCCESS=1
+      else 
+        cprint red "*** Some errors occured during custom bootstrap. Please review. ***"
+        echo
+        continue
+      fi
+    fi
+
+    if [ $SUCCESS -eq 0 ]; then
+     cprint yellow "*** No bootstrap found in module ***"
+   else
+     cprint green "*** Module has been successfully bootstraped ***"
+   fi
+   echo
   fi
 done
