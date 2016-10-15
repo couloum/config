@@ -99,8 +99,13 @@ bootstrap_module() {
     FILE=$(echo $line | awk '{print $1}')
     TARGET=$(echo $line | awk '{print $2}')
 
-    echo " * Processing file $(basename $FILE)"
+    cprint magenta " * Processing file $(basename $FILE)"
 
+    # If target is empty, there is an error
+    if [ -z "${TARGET}" ]; then
+      cprint red "   ! Target is empty. Did you forget it?"
+      return 1
+    fi
     # If target is a dash, deduct it
     if [ "${TARGET}" = "-" ]; then
       TARGET=$(expr $(basename "${FILE}") : '^\.*\(.*\)$')
@@ -112,7 +117,7 @@ bootstrap_module() {
     # File is always in homedir
     FILE="$HOME/$FILE"
 
-    echo "   * Target is ${TARGET}"
+    cprint cyan "   % Target is ${TARGET}"
 
     # Check that target exist
     if [ ! -e "${TARGET}" ]; then
@@ -158,7 +163,7 @@ for module in $(ls .); do
     SUCCESS=0
     # Execute standard boostrap if .bootstrap file exists
     if [ -f $module/.bootstrap ]; then
-      cprint white "Calling standard bootstrap"
+      cprint cyan "% Calling standard bootstrap"
       bootstrap_module $module
       if [ $? -eq 0 ]; then
         SUCCESS=1
@@ -171,7 +176,7 @@ for module in $(ls .); do
 
     # Execute custom bootstrap if a bootstrap script exists
     if [ -x $module/bootstrap ]; then
-      cprint white "Executing custom bootstrap script"
+      cprint cyan "% Executing custom bootstrap script"
       $module/bootstrap
       if [ $? -eq 0 ]; then
         SUCCESS=1
