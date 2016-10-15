@@ -7,3 +7,6 @@
 [submodule "vim/vim/bundle/vim-colors-solarized"]
 	path = vim/vim/bundle/vim-colors-solarized
 	url = https://github.com/altercation/vim-colors-solarized
+[submodule "zsh/zprezto"]
+	path = zsh/zprezto
+	url = https://github.com/couloum/prezto

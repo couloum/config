@@ -1,0 +1,20 @@
+#!/bin/sh
+
+if [ ! -d ~/.zprezto ]; then
+	echo ".zprezto dir has not been found in user home" > /dev/stderr
+	exit 1
+fi
+
+echo "Installing zprezto"
+
+for i in ~/.zprezto/runcoms/z*; do
+	f=.$(basename $i)
+	echo "  x linking file $f"
+	if [ -f ~/$f ]; then
+		=mv -f ~/$f ~/$f.pre-zprezto
+	fi
+	ln -s .zprezto/runcoms/$(basename $i) ~/$f
+done
+
+echo "Installation done. Running zsh now"
+exec zsh
