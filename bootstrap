@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG=1
+DEBUG=0
 
 BASE_DIR=$(dirname $0)
 cd $BASE_DIR
@@ -67,7 +67,7 @@ check_and_replace() {
     debug "mv \"${FILE}\" \"${BAK_FILE}\""
     mv "${FILE}" "${BAK_FILE}"
     if [ $? -eq 0 ]; then
-      cprint green "   * Created a backup of ${TYPE} \`${FILE}\` -> \`${TARGET}\`"
+      cprint green "   * Created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
     else 
       cprint red "   ! Error during backup creation. Abort."
       return 1
