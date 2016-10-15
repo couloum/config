@@ -1,0 +1,149 @@
+#!/bin/bash
+
+DEBUG=1
+
+BASE_DIR=$(dirname $0)
+cd $BASE_DIR
+BASE_DIR=$(pwd)
+
+cprint() {
+  COLOR=$1
+  MSG=$2
+  case $COLOR in
+    black) COLOR_NUM=0 ;;
+    red) COLOR_NUM=1 ;;
+    green) COLOR_NUM=2 ;;
+    yellow) COLOR_NUM=3 ;;
+    blue) COLOR_NUM=4 ;;
+    magenta) COLOR_NUM=5 ;;
+    cyan) COLOR_NUM=6 ;;
+    *) COLOR_NUM=7 ;; # white
+  esac
+
+  echo "$(tput setaf $COLOR_NUM)$MSG$(tput sgr 0)"
+}
+
+debug() {
+  if [ $DEBUG -gt 0 ]; then
+    cprint yellow "[DEBUG] $1"
+  fi
+}
+
+check_and_replace() {
+  FILE=$1
+  TARGET=$2
+
+  #
+  # If $FILE alrady exist, create a backup
+  #
+  if [ -e $FILE ]; then
+    
+    #
+    # If file is already a link, do nothing
+    #
+
+    if [ -L "$FILE" ] && [ $(readlink "$FILE") = "${TARGET}" ]; then
+      cprint green "   * File ${FILE}: link is already present. Do nothing."
+      return 0
+    fi
+
+    #
+    # Otherwise, backup it
+    #
+
+    # Check for an available backup filename
+    COUNT=0
+    while [ $COUNT -eq 0 ] || [ -e "$BAK_FILE" ]; do
+      BAK_FILE="${FILE}.bak-$(date +%Y-%m-%d)-${COUNT}"
+      COUNT=$(($COUNT + 1))
+    done
+
+    # rename current file/dir
+    [ -d $FILE ] && TYPE="directory" || TYPE="file"
+    debug "mv \"${FILE}\" \"${BAK_FILE}\""
+    mv "${FILE}" "${BAK_FILE}"
+    if [ $? -eq 0 ]; then
+      cprint green "   * Created a backup of ${TYPE} \`${FILE}\` -> \`${TARGET}\`"
+    else 
+      cprint red "   ! Error during backup creation. Abort."
+      return 1
+    fi
+    
+  fi
+
+  #
+  # Create the symbolic link
+  #
+  debug "ln -s \"${TARGET}\" \"${FILE}\""
+  ln -s "${TARGET}" "${FILE}"
+  if [ $? -eq 0 ]; then
+    cprint green "   * Created link: ${FILE} -> ${TARGET}"
+    return 0
+  else
+    cprint red "   ! Error during link creation. Abort."
+    return 1
+  fi
+}
+
+
+bootstrap_module() {
+  MODULE=$1
+
+  if [ ! -f "$MODULE/.bootstrap" ]; then
+    cprint " \! No bootstrap file found in module"
+    return 1
+  fi
+
+  IFS=$'\r\n'
+  FILES_COPIED=0
+  for line in $(cat $MODULE/.bootstrap | grep -Ev '^\s*#'); do
+    FILE=$(echo $line | awk '{print $1}')
+    TARGET=$(echo $line | awk '{print $2}')
+
+    echo " * Processing file $(basename $FILE)"
+
+    # If target is a dash, deduct it
+    if [ "${TARGET}" = "-" ]; then
+      TARGET=$(expr $(basename "${FILE}") : '^\.*\(.*\)$')
+    fi
+
+    # Add parent dir of target
+    TARGET="${BASE_DIR}/${MODULE}/$TARGET"
+
+    # File is always in homedir
+    FILE="$HOME/$FILE"
+
+    echo "   * Target is ${TARGET}"
+
+    # Check that target exist
+    if [ ! -e "${TARGET}" ]; then
+      cprint red "   ! Error: target does not exist ($TARGET)"
+      return 1
+    fi 
+
+    check_and_replace $FILE $TARGET && \
+      FILES_COPIED=$(($FILES_COPIED + 1))
+  done
+
+  if [ $FILES_COPIED -eq 0 ]; then
+    cprint red " *** Module $MODULE / No file has been bootstraped ***"
+  else
+    cprint green " *** Module $MODULE / $FILES_COPIED files has been bootstraped ***"
+  fi
+  echo
+}
+
+#
+# Main script
+#
+
+# For each submodule, read .bootstrap file and do the bootstrap magic
+for module in $(ls .); do
+  if [ "$module" = "." ] || [ "$module" = ".." ]; then
+    continue
+  fi
+  if [ -d "$module" ]; then
+    cprint cyan "[ Entering in submodule : $(basename $module) ]"
+    bootstrap_module $module
+  fi
+done
