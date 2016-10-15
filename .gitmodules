@@ -1,0 +1,9 @@
+[submodule "vim/vim/bundle/puppet-syntax-vim"]
+	path = vim/vim/bundle/puppet-syntax-vim
+	url = https://github.com/puppetlabs/puppet-syntax-vim
+[submodule "vim/vim/bundle/syntastic"]
+	path = vim/vim/bundle/syntastic
+	url = https://github.com/scrooloose/syntastic
+[submodule "vim/vim/bundle/vim-colors-solarized"]
+	path = vim/vim/bundle/vim-colors-solarized
+	url = https://github.com/altercation/vim-colors-solarized

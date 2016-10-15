@@ -1,0 +1,23 @@
+execute pathogen#infect()
+
+let g:solarized_termcolors=256
+
+set expandtab
+set tabstop=2
+retab
+set shiftwidth=2
+filetype plugin indent on
+syntax enable
+set background=dark
+colorscheme solarized
+set number
+
+
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
