@@ -1,13 +1,13 @@
 execute pathogen#infect()
 
-; Space and tab management configuration
+" Space and tab management configuration
 set expandtab
 set tabstop=2
 retab
 set shiftwidth=2
 filetype plugin indent on
 
-; Display configuration
+" Display configuration
 syntax enable
 set background=dark
 colorscheme solarized
@@ -19,7 +19,7 @@ set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 
 
-; Auto-correction configuration
+" Auto-correction configuration
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
