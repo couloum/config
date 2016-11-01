@@ -6,8 +6,10 @@ BASE_DIR=$(dirname $0)
 cd $BASE_DIR
 BASE_DIR=$(pwd)
 
+HOMEDIR=$HOME
+
 show_usage() {
-  echo "Usage: $(basename $0) [-d,--debug] [-h,--help]"
+  echo "Usage: $(basename $0) [-d,--debug] [-h,--help] [-H,--home DIR]"
 }
 
 cprint() {
@@ -115,7 +117,7 @@ bootstrap_module() {
     TARGET="${BASE_DIR}/${MODULE}/$TARGET"
 
     # File is always in homedir
-    FILE="$HOME/$FILE"
+    FILE="$HOMEDIR/$FILE"
 
     cprint cyan "   % Target is ${TARGET}"
 
@@ -137,11 +139,12 @@ bootstrap_module() {
 #
 
 # Get arguments
-OPTS=$(getopt -o 'dh' --long 'debug,help' -n $(basename $0) -- "$@")
+OPTS=$(getopt -o 'dhH:' --long 'debug,help,home' -n $(basename $0) -- "$@")
 eval set -- $OPTS
 
 while true; do
   case "$1" in
+    -H|--home) HOMEDIR=$2 ; shift ;;
     -d|--debug) DEBUG=1 ;;
     -h|--help) show_usage ; exit 0 ;;
     --) shift ; break ;;
