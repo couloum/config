@@ -1,6 +1,6 @@
 execute pathogen#infect()
 
-" let g:solarized_termcolors=16
+" let g:solarized_termcolors=256
 
 " Auto-correction configuration
 let g:syntastic_always_populate_loc_list = 1

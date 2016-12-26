@@ -1,6 +1,8 @@
 #!/bin/bash
 
 DEBUG=0
+DRYRUN=0
+DRYRUN_SWITCH=""
 
 BASE_DIR=$(dirname $0)
 cd $BASE_DIR
@@ -9,7 +11,7 @@ BASE_DIR=$(pwd)
 HOMEDIR=$HOME
 
 show_usage() {
-  echo "Usage: $(basename $0) [-d,--debug] [-h,--help] [-H,--home DIR]"
+  echo "Usage: $(basename $0) [-d,--debug] [-n, --dry-run] [-h,--help] [-H,--home DIR]"
 }
 
 cprint() {
@@ -66,13 +68,18 @@ check_and_replace() {
 
     # rename current file/dir
     [ -d $FILE ] && TYPE="directory" || TYPE="file"
-    debug "mv \"${FILE}\" \"${BAK_FILE}\""
-    mv "${FILE}" "${BAK_FILE}"
-    if [ $? -eq 0 ]; then
-      cprint green "   * Created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
-    else 
-      cprint red "   ! Error during backup creation. Abort."
-      return 1
+
+    if [ $DRYRUN -eq 1 ]; then
+      cprint blue "   * DRY-RUN MODE: would have created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
+    else
+      debug "mv \"${FILE}\" \"${BAK_FILE}\""
+      mv "${FILE}" "${BAK_FILE}"
+      if [ $? -eq 0 ]; then
+        cprint green "   * Created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
+      else 
+        cprint red "   ! Error during backup creation. Abort."
+        return 1
+      fi
     fi
     
   fi
@@ -80,15 +87,20 @@ check_and_replace() {
   #
   # Create the symbolic link
   #
-  debug "ln -s \"${TARGET}\" \"${FILE}\""
-  ln -s "${TARGET}" "${FILE}"
-  if [ $? -eq 0 ]; then
-    cprint green "   * Created link: ${FILE} -> ${TARGET}"
-    return 0
+  if [ $DRYRUN -eq 1 ]; then
+    cprint blue "   * DRY-RUN MODE: would have created link: ${FILE} -> ${TARGET}"
   else
-    cprint red "   ! Error during link creation. Abort."
-    return 1
+    debug "ln -s \"${TARGET}\" \"${FILE}\""
+    ln -s "${TARGET}" "${FILE}"
+    if [ $? -eq 0 ]; then
+      cprint green "   * Created link: ${FILE} -> ${TARGET}"
+    else
+      cprint red "   ! Error during link creation. Abort."
+      return 1
+    fi
   fi
+
+  return 0
 }
 
 
@@ -139,19 +151,40 @@ bootstrap_module() {
 #
 
 # Get arguments
-OPTS=$(getopt -o 'dhH:' --long 'debug,help,home' -n $(basename $0) -- "$@")
-eval set -- $OPTS
+getopt -T > /dev/null 2>&1
+if [ $? -eq 4 ]; then
+  # GNU enhanced getopt is available
+  OPTS=$(getopt -o dhnH: --long debug,help,dry-run,home -n "$(basename $0)" -- "$@")
+  echo $OPTS
+  eval set -- "$OPTS"
 
-while true; do
-  case "$1" in
-    -H|--home) HOMEDIR=$2 ; shift ;;
-    -d|--debug) DEBUG=1 ;;
-    -h|--help) show_usage ; exit 0 ;;
-    --) shift ; break ;;
-    *) echo "Internal error!"; exit 1 ;;
-  esac
-  shift
-done
+  while true; do
+    echo "\$1 = $1"
+    case "$1" in
+      -H|--home) HOMEDIR=$2 ; shift 2 ;;
+      -d|--debug) DEBUG=1 ;;
+      -n|--dry-run) DRYRUN=1 ; DRYRUN_SWITCH="-n" ; shift ;;
+      -h|--help) show_usage ; exit 0 ;;
+      --) shift ; break ;;
+      *) echo "Internal error!"; exit 1 ;;
+    esac
+  done
+else
+  # Original getopt is available. So use getopts instead
+  while getopts ":dhnH:" OPT; do
+    case "$OPT" in
+      H) HOMEDIR=$OPTARG ;;
+      d) DEBUG=1 ;;
+      n) DRYRUN=1 ; DRYRUN_SWITCH="-n" ;;
+      h) show_usage ; exit 0 ;;
+      \?) echo "Invalid option: -$OPTARG" >&2 ; exit 1 ;;
+      :) echo "Option -$OPTARG requires an argument." >&2 ; exit 1 ;;
+    esac
+  done
+fi
+
+
+ERRORS=0
 
 # For each submodule, read .bootstrap file and do the bootstrap magic
 for module in $(ls .); do
@@ -171,6 +204,7 @@ for module in $(ls .); do
       if [ $? -eq 0 ]; then
         SUCCESS=1
       else 
+        ERRORS=1
         cprint red "*** Some errors occured during standard bootstrap. Please review. ***"
         echo
         continue
@@ -180,10 +214,11 @@ for module in $(ls .); do
     # Execute custom bootstrap if a bootstrap script exists
     if [ -x $module/bootstrap ]; then
       cprint cyan "% Executing custom bootstrap script"
-      $module/bootstrap
+      $module/bootstrap $DRYRUN_SWITCH
       if [ $? -eq 0 ]; then
         SUCCESS=1
       else 
+        ERRORS=1
         cprint red "*** Some errors occured during custom bootstrap. Please review. ***"
         echo
         continue
@@ -198,3 +233,5 @@ for module in $(ls .); do
    echo
   fi
 done
+
+exit $ERRORS
