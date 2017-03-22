@@ -7,4 +7,6 @@ My own configuration files for various softwares :
 
 ##Installation
     git clone https://github.com/couloum/config ~/.myconfig
-    ~/.myconfig/bootstrap
+    cd ~/.myconfig
+    git submodule update --init
+    ./bootstrap

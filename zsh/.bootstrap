@@ -5,3 +5,4 @@
 .zprofile zprezto/runcoms/zprofile
 .zshenv zprezto/runcoms/zshenv
 .zpreztorc zprezto/runcoms/zpreztorc
+.dircolors.custom -
