@@ -12,29 +12,29 @@ chdir(dirname($0));
 my $root_dir = getcwd();
 
 print "Updating git repository (git pull)\n";
-#system('git pull');
+system('git pull');
 #
 sub update_or_init_submodule {
   my $level = shift || 0;
   my $git_dir = getcwd() =~ s/^$root_dir/./r;
 
-  my @submodules = split('\n', `git submodule status`);
+  my @submodules = split(/\n/, `git submodule status`);
 
   # In first loop, init or update submodules
   my $nb_submodules = 0;
   my $nb_init = 0;
   my $nb_updated = 0;
 
-	for my $submodule (@submodules) {
-    if ($submodule =~ /^(.)([\da-f]{40}) ([^\(]+) \(([^\)]+)\)$/) {
-      my ($sub_state, $sub_hash, $sub_path, $sub_branch) = ($1, $2, $3, $4);
+  foreach my $submodule (@submodules) {
+    if ($submodule =~ /^(.)([\da-f]{40}) ([^\(]+)/) {
+      my ($sub_state, $sub_hash, $sub_path) = ($1, $2, $3);
       # If submodule status begin with a '-', it is not initialized.
       if ($sub_state eq '-') {
-        system("git submodule init $sub_path");
+        my $out = `git submodule init $sub_path`;
         $nb_init++;
       }
       # If submodule status begin with a '+', it is not up to date.
-      if ($sub_state eq '+') {
+      elsif ($sub_state eq '+') {
         $nb_updated++;
       }
       $nb_submodules++;
@@ -42,7 +42,7 @@ sub update_or_init_submodule {
   }
 
   if ($nb_submodules > 0) {
-    system('git submodule update');
+    my $out = `git submodule update`;
     print "$git_dir [$nb_submodules found. $nb_init initialized and $nb_updated updated]\n";
   }
 
