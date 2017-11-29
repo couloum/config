@@ -30,3 +30,10 @@ if has("autocmd")
   au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
     \| exe "normal! g'\"" | endif
 endif
+
+" Bash-style tab completion for files
+set wildmenu
+set wildmode=longest:full,full
+
+" Correct issue when pasting from one file to another
+set clipboard=unnamed
