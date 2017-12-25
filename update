@@ -46,7 +46,7 @@ sub update_or_init_submodule {
     print "$git_dir [$nb_submodules found. $nb_init initialized and $nb_updated updated]\n";
   }
 
-	for my $submodule (@submodules) {
+  for my $submodule (@submodules) {
     if ($submodule =~ /^(.)([\da-f]{40}) ([^\(]+) \(([^\)]+)\)$/) {
       my ($sub_state, $sub_hash, $sub_path, $sub_branch) = ($1, $2, $3, $4);
       # Anyway, analyze what is in this submodule

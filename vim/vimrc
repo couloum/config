@@ -8,6 +8,10 @@ let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 
+"Airline theme configuration (use Solarized)
+let g:airline_theme='solarized'
+let g:airline_solarized_bg='dark'
+
 " Space and tab management configuration
 set expandtab
 set tabstop=2
@@ -21,9 +25,6 @@ set background=dark
 colorscheme solarized
 set number
 
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
 
 " Have Vim jump to the last position when reopening a file
 if has("autocmd")
@@ -37,3 +38,4 @@ set wildmode=longest:full,full
 
 " Correct issue when pasting from one file to another
 set clipboard=unnamed
+
