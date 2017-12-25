@@ -16,3 +16,6 @@
 [submodule "vim/vim/bundle/vim-airline-themes"]
 	path = vim/vim/bundle/vim-airline-themes
 	url = https://github.com/vim-airline/vim-airline-themes
+[submodule "vim/vim/bundle/vim-fugitive"]
+	path = vim/vim/bundle/vim-fugitive
+	url = https://github.com/tpope/vim-fugitive

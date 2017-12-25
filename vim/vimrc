@@ -11,6 +11,7 @@ let g:syntastic_check_on_wq = 0
 "Airline theme configuration (use Solarized)
 let g:airline_theme='solarized'
 let g:airline_solarized_bg='dark'
+"let g:airline_powerline_fonts = 1
 
 " Space and tab management configuration
 set expandtab
