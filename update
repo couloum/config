@@ -11,9 +11,11 @@ $|++;
 chdir(dirname($0));
 my $root_dir = getcwd();
 
-print "Updating git repository (git pull)\n";
+my %submodules_stats = ();
+
+print "===== 1. Updating git repository (git pull)\n";
 system('git pull');
-#
+
 sub update_or_init_submodule {
   my $level = shift || 0;
   my $git_dir = getcwd() =~ s/^$root_dir/./r;
@@ -22,30 +24,35 @@ sub update_or_init_submodule {
 
   # In first loop, init or update submodules
   my $nb_submodules = 0;
-  my $nb_init = 0;
-  my $nb_updated = 0;
 
   foreach my $submodule (@submodules) {
     if ($submodule =~ /^(.)([\da-f]{40}) ([^\(]+)/) {
       my ($sub_state, $sub_hash, $sub_path) = ($1, $2, $3);
+      my $sub_full_path = "$git_dir/$sub_path";
       # If submodule status begin with a '-', it is not initialized.
       if ($sub_state eq '-') {
-        my $out = `git submodule init $sub_path`;
-        $nb_init++;
+        my $out = `git submodule init $sub_path 2>&1`;
+        $submodules_stats{$sub_full_path} = "\033[32mInitialized\033[0m";
       }
       # If submodule status begin with a '+', it is not up to date.
       elsif ($sub_state eq '+') {
-        $nb_updated++;
+        $submodules_stats{$sub_full_path} = "\033[32mUpdated\033[0m";
+      } else {
+        $submodules_stats{$sub_full_path} = "Already up to date";
       }
       $nb_submodules++;
+      printf("%-60s: %s\n", substr($sub_full_path, 0, 60), $submodules_stats{$sub_full_path});
     }
   }
 
   if ($nb_submodules > 0) {
-    my $out = `git submodule update`;
-    print "$git_dir [$nb_submodules found. $nb_init initialized and $nb_updated updated]\n";
+    my $out = `git submodule update 2>&1`;
+    #print "$git_dir [$nb_submodules found. $nb_init initialized and $nb_updated updated]\n";
+    # Save stats about this submodule
+    #$submodules_stats{$git_dir} = sprintf("%s;%s;%s", $nb_submodules, $nb_init, $nb_updated)
   }
 
+  # Run this function recursively for each submodule found
   for my $submodule (@submodules) {
     if ($submodule =~ /^(.)([\da-f]{40}) ([^\(]+) \(([^\)]+)\)$/) {
       my ($sub_state, $sub_hash, $sub_path, $sub_branch) = ($1, $2, $3, $4);
@@ -57,5 +64,16 @@ sub update_or_init_submodule {
   }
 }
 
-print "Updating or initializing all submodule recursively:\n";
+print "===== 2. Updating or initializing all submodule recursively\n";
+
+#printf("+-%-50s-+-%4s-+\n", '-'x50, '-'x4);
+#printf("| %-50s | %4s |\n", "PATH", "STAT");
+#printf("+-%-50s-+-%4s-+\n", '-'x50, '-'x4);
 update_or_init_submodule();
+
+# Print statistics
+#foreach my $sub (keys %submodules_stats) {
+  #my ($nb_submodules, $nb_init, $nb_updated) = split(';', $submodules_stats{$sub});
+#  printf("| %-50s | %4s |\n", $sub, $submodules_stats{$sub});
+#}
+#printf("+-%-50s-+-%4s-+\n", '-'x50, '-'x4);
