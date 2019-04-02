@@ -25,6 +25,7 @@ syntax enable
 set background=dark
 colorscheme solarized
 set number
+set colorcolumn=81
 
 
 " Have Vim jump to the last position when reopening a file
@@ -40,3 +41,5 @@ set wildmode=longest:full,full
 " Correct issue when pasting from one file to another
 set clipboard=unnamed
 
+" Adjust size of copy/paste buffer
+set viminfo='20,<1000,s1000
