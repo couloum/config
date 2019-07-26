@@ -25,7 +25,7 @@ syntax enable
 set background=dark
 colorscheme solarized
 set number
-set colorcolumn=81
+set colorcolumn=81,141
 
 
 " Have Vim jump to the last position when reopening a file
