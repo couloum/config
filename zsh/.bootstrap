@@ -1,7 +1,7 @@
 .zprezto -
 .zlogin zprezto/runcoms/zlogin
 .zlogout zprezto/runcoms/zlogout
-.zshrc zprezto/runcoms/zshrc
+.zshrc.custom zprezto/runcoms/zshrc
 .zprofile zprezto/runcoms/zprofile
 .zshenv zprezto/runcoms/zshenv
 .zpreztorc zprezto/runcoms/zpreztorc

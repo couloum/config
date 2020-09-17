@@ -1,0 +1,46 @@
+#!/bin/bash
+
+cprint() {
+  COLOR=$1
+  MSG=$2
+  case $COLOR in
+    black) COLOR_NUM=0 ;;
+    red) COLOR_NUM=1 ;;
+    green) COLOR_NUM=2 ;;
+    yellow) COLOR_NUM=3 ;;
+    blue) COLOR_NUM=4 ;;
+    magenta) COLOR_NUM=5 ;;
+    cyan) COLOR_NUM=6 ;;
+    *) COLOR_NUM=7 ;; # white
+  esac
+
+  echo "$(tput setaf $COLOR_NUM)$MSG$(tput sgr 0)"
+}
+
+# Ensure .zshrc is a file
+cprint magenta " * Ensure .zshrc is a regular file"
+if [ -f ~/.zshrc ] && [ ! -h ~/.zshrc ]; then
+  cprint green "   * .zshrc is a regular file"
+else
+  EXT=".bak-$(date +%Y.%m.%d-%H.%M.%S)"
+  cprint cyan "   % .zshrc is not a regular file. Backup to .zshrc${EXT}"
+  mv ~/.zshrc ~/.zshrc${EXT}
+  touch ~/.zshrc
+  cprint green "   * Link .zshrc moved and replaced with a regular file"
+fi
+
+# Ensure that file .zshrc.custom is sourced in .zshrc
+# Only if .zshrc is a file.
+
+cprint magenta " * Ensure we source .zshrc.custom in .zshrc"
+if [ -f ~/.zshrc ] && [ ! -h ~/.zshrc ]; then
+  if ! grep -qE '\.zshrc\.custom' ~/.zshrc; then
+    cprint yellow "  * Adding source to .zshrc.custom in .zshrc file."
+    echo "source .zshrc.custom" >> ~/.zshrc
+  else
+    cprint green "   * Source to .zshrc.custom is already set. Nothing to do."
+  fi
+else
+  # Should not happen
+  cprint red "   * .zshrc is not a regular file. Do nothing."
+fi
