@@ -102,8 +102,8 @@ if which tmux > /dev/null 2>&1; then
   # We convert version to an int by multiplying major version by 100 and adding minor.
   # 2.9 become 209. 3.0 become 300.
   TMUX_FULL_VERSION=$(tmux -V | sed -E 's/tmux ([0-9]\.[0-9]).*/\1/')
-  TMUX_MAJOR=$(echo TMUX_FULL_VERSION | awk -F '.' '{print $1}')
-  TMUX_MINOR=$(echo TMUX_FULL_VERSION | awk -F '.' '{print $2}')
+  TMUX_MAJOR=$(echo $TMUX_FULL_VERSION | awk -F '.' '{print $1}')
+  TMUX_MINOR=$(echo $TMUX_FULL_VERSION | awk -F '.' '{print $2}')
   TMUX_VER=$((TMUX_MAJOR * 100 + TMUX_MINOR))
 else
   # If tmux is not installed, consider a version >= 2.9 will be installed later
