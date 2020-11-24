@@ -1,0 +1,26 @@
+# Use ctrl+a instead of ctrl+b
+unbind C-b
+set -g prefix C-a
+bind C-a send-prefix
+
+# Save 10000 lines of history
+set -g history-limit 10000
+
+# Enable mouse wheel
+#bind-key m set-option -g mouse on \; display 'Mouse: ON'
+#bind-key M set-option -g mouse off \; display 'Mouse: OFF'
+#set -g mouse off
+
+# Shortcut for panel synchronization
+bind-key y set-option synchronize-panes
+
+# History is correctly managed in iTerm
+# This configuration seems to work with Tmux 2.8
+# See https://wiki.archlinux.org/index.php/tmux#Scrolling_issues
+set -ga terminal-overrides 'xterm*:smcup@:rmcup@'
+
+# Enable 256-colors mode
+set -g default-terminal "screen-256color"
+
+# Set background color to active window
+set-window-option -g window-status-current-style bg=blue

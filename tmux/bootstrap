@@ -1,0 +1,120 @@
+#!/bin/bash
+
+DRYRUN=${1:-0}
+DEBUG=1
+
+cprint() {
+  COLOR=$1
+  MSG=$2
+  case $COLOR in
+    black) COLOR_NUM=0 ;;
+    red) COLOR_NUM=1 ;;
+    green) COLOR_NUM=2 ;;
+    yellow) COLOR_NUM=3 ;;
+    blue) COLOR_NUM=4 ;;
+    magenta) COLOR_NUM=5 ;;
+    cyan) COLOR_NUM=6 ;;
+    *) COLOR_NUM=7 ;; # white
+  esac
+
+  echo "$(tput setaf $COLOR_NUM)$MSG$(tput sgr 0)"
+}
+
+debug() {
+  if [ $DEBUG -gt 0 ]; then
+    cprint yellow "[DEBUG] $1"
+  fi
+}
+
+
+check_and_replace() {
+  FILE=$1
+  TARGET=$2
+  CHECK_AND_REPLACE_RET=0
+
+  #
+  # If $FILE alrady exist, create a backup
+  #
+  if [ -e $FILE ]; then
+    
+    #
+    # If file is already a link, do nothing
+    #
+
+    if [ -L "$FILE" ] && [ $(readlink "$FILE") = "${TARGET}" ]; then
+      cprint green "   * File ${FILE}: link is already present. Do nothing."
+      return 0
+    fi
+
+    #
+    # Otherwise, backup it
+    #
+
+    # Check for an available backup filename
+    COUNT=0
+    while [ $COUNT -eq 0 ] || [ -e "$BAK_FILE" ]; do
+      BAK_FILE="${FILE}.bak-$(date +%Y-%m-%d)-${COUNT}"
+      COUNT=$(($COUNT + 1))
+    done
+
+    # rename current file/dir
+    [ -d $FILE ] && TYPE="directory" || TYPE="file"
+
+    if [ $DRYRUN -eq 1 ]; then
+      cprint blue "   * DRY-RUN MODE: would have created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
+      CHECK_AND_REPLACE_RET=1
+    else
+      debug "mv \"${FILE}\" \"${BAK_FILE}\""
+      mv "${FILE}" "${BAK_FILE}"
+      if [ $? -eq 0 ]; then
+        cprint green "   * Created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
+      else 
+        cprint red "   ! Error during backup creation. Abort."
+        return 2
+      fi
+    fi
+    
+  fi
+
+  #
+  # Create the symbolic link
+  #
+  if [ $DRYRUN -eq 1 ]; then
+    cprint blue "   * DRY-RUN MODE: would have created link: ${FILE} -> ${TARGET}"
+    CHECK_AND_REPLACE_RET=1
+  else
+    debug "ln -s \"${TARGET}\" \"${FILE}\""
+    ln -sf "${TARGET}" "${FILE}"
+    if [ $? -eq 0 ]; then
+      cprint green "   * Created link: ${FILE} -> ${TARGET}"
+    else
+      cprint red "   ! Error during link creation. Abort."
+      return 2
+    fi
+  fi
+
+  return $CHECK_AND_REPLACE_RET
+}
+
+# Check if tmux is present or not
+if which tmux > /dev/null 2>&1; then
+  # Check tmux VERSION
+  # We convert version to an int by multiplying major version by 100 and adding minor.
+  # 2.9 become 209. 3.0 become 300.
+  TMUX_FULL_VERSION=$(tmux -V | sed -E 's/tmux ([0-9]\.[0-9]).*/\1/')
+  TMUX_MAJOR=$(TMUX_FULL_VERSION | awk -F '.' '{print $1}')
+  TMUX_MINOR=$(TMUX_FULL_VERSION | awk -F '.' '{print $2}')
+  TMUX_VER=$((TMUX_MAJOR * 100 + TMUX_MINOR))
+else
+  # If tmux is not installed, consider a version >= 2.9 will be installed later
+  TMUX_VER=209
+fi
+
+
+if [[ $TMUX_VER -ge 209 ]]; then
+  cprint magenta " * Copy tmux conf for tmux >= 2.9"
+  check_and_replace ~/.tmux.conf $(pwd)/tmux/tmux.conf-2.9
+else
+  cprint magenta " * Copy tmux conf for tmux < 2.9"
+  check_and_replace ~/.tmux.conf $(pwd)/tmux/tmux.conf
+fi
