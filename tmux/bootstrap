@@ -1,7 +1,6 @@
 #!/bin/bash
 
 DRYRUN=${1:-0}
-DEBUG=1
 
 cprint() {
   COLOR=$1
