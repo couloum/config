@@ -34,9 +34,9 @@ fi
 
 cprint magenta " * Ensure we source .zshrc.custom in .zshrc"
 if [ -f ~/.zshrc ] && [ ! -h ~/.zshrc ]; then
-  if ! grep -qE '\.zshrc\.custom' ~/.zshrc; then
+  if ! grep -qE '\$HOME/\.zshrc\.custom' ~/.zshrc; then
     cprint yellow "  * Adding source to .zshrc.custom in .zshrc file."
-    echo "source .zshrc.custom" >> ~/.zshrc
+    echo "source \$HOME/.zshrc.custom" >> ~/.zshrc
   else
     cprint green "   * Source to .zshrc.custom is already set. Nothing to do."
   fi
