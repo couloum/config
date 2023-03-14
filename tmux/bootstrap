@@ -20,7 +20,7 @@ cprint() {
 }
 
 debug() {
-  if [ $DEBUG -gt 0 ]; then
+  if [[ $DEBUG -gt 0 ]]; then
     cprint yellow "[DEBUG] $1"
   fi
 }

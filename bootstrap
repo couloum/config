@@ -10,6 +10,8 @@ BASE_DIR=$(pwd)
 
 HOMEDIR=$HOME
 
+export DEBUG
+
 show_usage() {
   echo "Usage: $(basename $0) [-d,--debug] [-n, --dry-run] [-h,--help] [-H,--home DIR]"
 }
@@ -32,7 +34,7 @@ cprint() {
 }
 
 debug() {
-  if [ $DEBUG -gt 0 ]; then
+  if [[ $DEBUG -gt 0 ]]; then
     cprint yellow "[DEBUG] $1"
   fi
 }
