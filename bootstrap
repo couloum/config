@@ -104,8 +104,8 @@ check_and_replace() {
     cprint blue "   * DRY-RUN MODE: would have created link: ${FILE} -> ${TARGET}"
     CHECK_AND_REPLACE_RET=1
   else
-    debug "ln -s \"${TARGET}\" \"${FILE}\""
-    ln -s "${TARGET}" "${FILE}"
+    debug "ln -sf \"${TARGET}\" \"${FILE}\""
+    ln -sf "${TARGET}" "${FILE}"
     if [ $? -eq 0 ]; then
       cprint green "   * Created link: ${FILE} -> ${TARGET}"
     else
