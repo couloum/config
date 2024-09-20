@@ -168,6 +168,9 @@ bootstrap_module() {
       return 2
     fi
 
+    # File is always in homedir
+    FILE="$HOMEDIR/$FILE"
+
     # If target is an underscord, remove file instead of creating a symlink
     if [[ "${TARGET}" == "_" ]]; then
       check_and_delete "$FILE"
@@ -181,9 +184,6 @@ bootstrap_module() {
 
     # Add parent dir of target
     TARGET="${BASE_DIR}/${MODULE}/$TARGET"
-
-    # File is always in homedir
-    FILE="$HOMEDIR/$FILE"
 
     if [[ "${TARGET}" != "_" ]]; then
       cprint cyan "   % Target is ${TARGET}"
