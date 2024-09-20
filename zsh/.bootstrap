@@ -4,3 +4,6 @@
 .zprofile -
 .zshenv -
 .dircolors.custom -
+# Remove these files that were previously created
+.zlogin _
+.zlogout _

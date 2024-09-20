@@ -39,6 +39,36 @@ debug() {
   fi
 }
 
+_backup_file() {
+  FILE="$1"
+
+  # Check for an available backup filename
+  COUNT=0
+  while [ $COUNT -eq 0 ] || [ -e "$BAK_FILE" ]; do
+    BAK_FILE="${FILE}.bak-$(date +%Y-%m-%d)-${COUNT}"
+    COUNT=$(($COUNT + 1))
+  done
+
+  # rename current file/dir
+  [ -d $FILE ] && TYPE="directory" || TYPE="file"
+
+  if [ $DRYRUN -eq 1 ]; then
+    cprint blue "   * DRY-RUN MODE: would have created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
+    CHECK_AND_REPLACE_RET=1
+  else
+    debug "mv \"${FILE}\" \"${BAK_FILE}\""
+    mv "${FILE}" "${BAK_FILE}"
+    if [ $? -eq 0 ]; then
+      cprint green "   * Created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
+    else 
+      cprint red "   ! Error during backup creation. Abort."
+      return 2
+    fi
+  fi
+
+  return 0
+}
+
 check_and_replace() {
   FILE=$1
   TARGET=$2
@@ -61,29 +91,8 @@ check_and_replace() {
     #
     # Otherwise, backup it
     #
-
-    # Check for an available backup filename
-    COUNT=0
-    while [ $COUNT -eq 0 ] || [ -e "$BAK_FILE" ]; do
-      BAK_FILE="${FILE}.bak-$(date +%Y-%m-%d)-${COUNT}"
-      COUNT=$(($COUNT + 1))
-    done
-
-    # rename current file/dir
-    [ -d $FILE ] && TYPE="directory" || TYPE="file"
-
-    if [ $DRYRUN -eq 1 ]; then
-      cprint blue "   * DRY-RUN MODE: would have created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
-      CHECK_AND_REPLACE_RET=1
-    else
-      debug "mv \"${FILE}\" \"${BAK_FILE}\""
-      mv "${FILE}" "${BAK_FILE}"
-      if [ $? -eq 0 ]; then
-        cprint green "   * Created a backup of ${TYPE} \`$(basename ${FILE})\` -> \`$(basename ${BAK_FILE})\`"
-      else 
-        cprint red "   ! Error during backup creation. Abort."
-        return 2
-      fi
+    if ! _backup_file "$FILE"; then
+      return 1
     fi
     
   fi
@@ -108,6 +117,39 @@ check_and_replace() {
   return $CHECK_AND_REPLACE_RET
 }
 
+check_and_delete() {
+  FILE="$1"
+
+  #
+  # If file is already absent, do nothing
+  #
+  if [[ ! -e "$FILE" ]]; then
+      cprint green "   * File ${FILE}: file is already absent. Do nothing."
+      return 0
+  fi
+
+  #
+  # If $FILE exists, create a backup and remove it
+  #
+  if ! _backup_file "$FILE"; then
+    return 1
+  fi
+
+  if [ $DRYRUN -eq 1 ]; then
+    cprint blue "   * DRY-RUN MODE: would have removed file: ${FILE}"
+  else
+    debug "rm -f \"${FILE}\""
+    rm -f "${FILE}"
+    if [ $? -eq 0 ]; then
+      cprint green "   * Removed file: ${FILE}"
+    else
+      cprint red "   ! Error during file deletion. Abort."
+      return 2
+    fi
+  fi
+
+}
+
 
 bootstrap_module() {
   MODULE=$1
@@ -125,8 +167,15 @@ bootstrap_module() {
       cprint red "   ! Target is empty. Did you forget it?"
       return 2
     fi
+
+    # If target is an underscord, remove file instead of creating a symlink
+    if [[ "${TARGET}" == "_" ]]; then
+      check_and_delete "$FILE"
+      continue
+    fi
+
     # If target is a dash, deduct it
-    if [ "${TARGET}" = "-" ]; then
+    if [[ "${TARGET}" == "-" ]]; then
       TARGET=$(expr $(basename "${FILE}") : '^\.*\(.*\)$')
     fi
 
@@ -136,7 +185,9 @@ bootstrap_module() {
     # File is always in homedir
     FILE="$HOMEDIR/$FILE"
 
-    cprint cyan "   % Target is ${TARGET}"
+    if [[ "${TARGET}" != "_" ]]; then
+      cprint cyan "   % Target is ${TARGET}"
+    fi
 
     # Check that target exist
     if [ ! -e "${TARGET}" ]; then
