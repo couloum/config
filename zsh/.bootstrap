@@ -1,6 +1,6 @@
 .zim -
-.zimrc
-.zshrc.custom
-.zprofile
-.zshenv
+.zimrc -
+.zshrc.custom -
+.zprofile -
+.zshenv -
 .dircolors.custom -
