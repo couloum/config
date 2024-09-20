@@ -122,6 +122,13 @@ if ! echo $PATH | grep -q /opt/puppetlabs/bin && [ -d /opt/puppetlabs/bin ]; the
 fi
 
 #
+# Key bindings
+#
+
+bindkey '^A'	beginning-of-line
+bindkey '^E'	end-of-line
+
+#
 # Custom aliases
 #
 
