@@ -9,6 +9,6 @@ if [[ -z $GIT_HASH ]]; then
 fi
 
 echo "Creating archive..."
-tar czf myconfig-$GIT_HASH.tar.gz --exclude ".git" .
+tar czf myconfig-$GIT_HASH.tar.gz --exclude ".git" --exclude "myconfig-*.tar.gz" .
 echo "Archive created:"
 ls -lh myconfig-$GIT_HASH.tar.gz
