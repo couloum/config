@@ -1,3 +1,14 @@
 #!/bin/bash
 
-tar czvf ../myconfig-$(date +%Y-%m-%d).tar.gz --exclude ".git" .
+# get last commit short hasH
+GIT_HASH=$(git show --oneline | head -n1 | awk '{print $1}')
+
+if [[ -z $GIT_HASH ]]; then
+  echo "Error: cannot find hash of last git commit" >&2
+  exit 1
+fi
+
+echo "Creating archive..."
+tar czf myconfig-$GIT_HASH.tar.gz --exclude ".git" .
+echo "Archive created:"
+ls -lh myconfig-$GIT_HASH.tar.gz
