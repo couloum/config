@@ -100,7 +100,7 @@ if (( ${+functions[git-info]} )); then
   # Set git-info parameters.
   zstyle ':zim:git-info' verbose 'yes'
   zstyle ':zim:git-info:branch' format "%f%F{white}%b%f"   		# 
-  zstyle ':zim:git-info:commit' format '%F{yellow}%c%f'                 # 
+  zstyle ':zim:git-info:commit' format '%F{cyan}%c%f'                 # 
   zstyle ':zim:git-info:position' format '%F{white}%p%f'
   zstyle ':zim:git-info:added' format "%F{white}✚%f"        		# ✚
   zstyle ':zim:git-info:deleted' format "%F{white}✖%f"      		# ✖
