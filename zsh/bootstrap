@@ -45,29 +45,4 @@ else
   cprint red "   * .zshrc is not a regular file. Do nothing."
 fi
 
-check_and_replace() {
-	FILE="$1"
-	TARGET="$2"
-
-	if [[ -L "$FILE" ]] && [[ $(readlink "$FILE") == "$TARGET" ]]; then
-		cprint green "$FILE: link already present"
-	else
-		mv $FILE $FILE.bak-$(date +%Y-%m-%d-%H-%M-%S)
-		ln -s "$TARGET" "$FILE"
-		cprint green "Created link $FILE -> $TARGET"
-	fi
-
-}
-
-cprint magenta "* Installing zim"
-
-check_and_replace ~/.zim $(pwd)/zim
-check_and_replace ~/.zimrc $(pwd)/zimrc
-
-cprint magenta "* Installing zsh configuration"
-check_and_replace ~/.zshrc.custom $(pwd)/zshrc.custom
-check_and_replace ~/.zshenv $(pwd)/zshenv
-check_and_replace ~/.zprofile $(pwd)/zprofile
-
-echo "Installation done. Running zsh now"
-exec zsh
+echo "Installation done. Restart zsh with command 'exec zsh'."
