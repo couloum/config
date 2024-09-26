@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Check if git repository is clean
+GIT_STATUS=$(git status --porcelain)
+if [[ -n $GIT_STATUS ]]; then
+  echo "Error: Git repository is not in a clean state. Please commit or stash your changes first." >&2
+  exit 1
+fi
+
 # get last commit short hasH
 GIT_HASH=$(git show --oneline | head -n1 | awk '{print $1}')
 
@@ -9,6 +16,18 @@ if [[ -z $GIT_HASH ]]; then
 fi
 
 echo "Creating archive..."
-tar czf myconfig-$GIT_HASH.tar.gz --exclude ".git" --exclude "myconfig-*.tar.gz" .
+touch version-$GIT_HASH
+tar czf myconfig.tar.gz \
+  --exclude ".git" \
+  --exclude ".gitignore" \
+  --exclude ".gitmodules" \
+  --exclude "myconfig-*.tar.gz" \
+  --exclude "myconfig.tar.gz" \
+  --exclude "create-tar-archive" \
+  --exclude "bootstrap" \
+  --exclude "update" \
+  --exclude "LICENSE" \
+  --exclude "README.md" .
+rm -f version-$GIT_HASH
 echo "Archive created:"
-ls -lh myconfig-$GIT_HASH.tar.gz
+ls -lh myconfig.tar.gz
