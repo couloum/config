@@ -5,7 +5,7 @@ cd $(dirname $0)
 # Ensure that git repo is in clean state
 GIT_STATUS=$(git status --porcelain 2>&1)
 if [[ -n $GIT_STATUS ]]; then
-  echo "Git repository is dirty. Please commit or stash all your changes before creating the archive." >&2
+  echo "Error: Git repository is not in a clean state. Please commit or stash your changes first." >&2
   exit 1
 fi
 
@@ -22,7 +22,10 @@ echo "Creating archive with version $GIT_HASH..."
 touch version-$GIT_HASH
 tar czf myconfig.tar.gz \
   --exclude ".git" \
+  --exclude ".gitignore" \
+  --exclude ".gitmodules" \
   --exclude "myconfig-*.tar.gz" \
+  --exclude "myconfig.tar.gz" \
   --exclude "create-tar-archive" \
   --exclude "update" \
   --exclude "README.md" \
