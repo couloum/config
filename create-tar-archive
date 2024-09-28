@@ -1,6 +1,15 @@
 #!/bin/bash
 
-# get last commit short hasH
+cd $(dirname $0)
+
+# Ensure that git repo is in clean state
+GIT_STATUS=$(git status --porcelain 2>&1)
+if [[ -n $GIT_STATUS ]]; then
+  echo "Git repository is dirty. Please commit or stash all your changes before creating the archive." >&2
+  exit 1
+fi
+
+# Get last commit short hash
 GIT_HASH=$(git show --oneline | head -n1 | awk '{print $1}')
 
 if [[ -z $GIT_HASH ]]; then
@@ -8,7 +17,17 @@ if [[ -z $GIT_HASH ]]; then
   exit 1
 fi
 
-echo "Creating archive..."
-tar czf myconfig-$GIT_HASH.tar.gz --exclude ".git" --exclude "myconfig-*.tar.gz" .
+# Create the archive with version
+echo "Creating archive with version $GIT_HASH..."
+touch version-$GIT_HASH
+tar czf myconfig.tar.gz \
+  --exclude ".git" \
+  --exclude "myconfig-*.tar.gz" \
+  --exclude "create-tar-archive" \
+  --exclude "update" \
+  --exclude "README.md" \
+  --exclude "LICENSE" \
+  .
+rm -f version-$GIT_HASH
 echo "Archive created:"
-ls -lh myconfig-$GIT_HASH.tar.gz
+ls -lh myconfig.tar.gz
