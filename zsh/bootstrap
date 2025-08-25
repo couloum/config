@@ -44,3 +44,5 @@ else
   # Should not happen
   cprint red "   * .zshrc is not a regular file. Do nothing."
 fi
+
+echo "Installation done. Restart zsh with command 'exec zsh'."

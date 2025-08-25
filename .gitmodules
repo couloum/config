@@ -1,12 +1,6 @@
-[submodule "vim/vim/bundle/syntastic"]
-	path = vim/vim/bundle/syntastic
-	url = https://github.com/scrooloose/syntastic
 [submodule "vim/vim/bundle/vim-colors-solarized"]
 	path = vim/vim/bundle/vim-colors-solarized
 	url = https://github.com/altercation/vim-colors-solarized
-[submodule "zsh/zprezto"]
-	path = zsh/zprezto
-	url = https://github.com/couloum/prezto
 [submodule "vim/vim/bundle/vim-airline"]
 	path = vim/vim/bundle/vim-airline
 	url = https://github.com/vim-airline/vim-airline
@@ -22,3 +16,6 @@
 [submodule "vim-puppet-syntax"]
 	path = vim/vim/bundle/vim-puppet
 	url = https://github.com/rodjek/vim-puppet.git
+[submodule "vim/vim/bundle/ale"]
+	path = vim/vim/bundle/ale
+	url = https://github.com/dense-analysis/ale

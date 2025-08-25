@@ -1,0 +1,848 @@
+# Start configuration added by Zim install {{{
+# -----------------
+# Zsh configuration
+# -----------------
+
+#
+# History
+#
+
+# Remove older command from the history if a duplicate is to be added.
+setopt HIST_IGNORE_ALL_DUPS
+
+#
+# Input/output
+#
+
+# Set editor default keymap to emacs (`-e`) or vi (`-v`)
+bindkey -v
+
+# Prompt for spelling correction of commands.
+#setopt CORRECT
+
+# Customize spelling correction prompt.
+#SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
+
+# Remove path separator from WORDCHARS.
+WORDCHARS=${WORDCHARS//[\/]}
+
+# -----------------
+# Zim configuration
+# -----------------
+
+# Use degit instead of git as the default tool to install and update modules.
+zstyle ':zim:zmodule' use 'degit'
+
+# --------------------
+# Module configuration
+# --------------------
+
+#
+# git
+#
+
+# Set a custom prefix for the generated aliases. The default prefix is 'G'.
+zstyle ':zim:git' aliases-prefix 'g'
+
+#
+# input
+#
+
+# Append `../` to your input for each `.` you type after an initial `..`
+#zstyle ':zim:input' double-dot-expand yes
+
+#
+# termtitle
+#
+
+# Set a custom terminal title format using prompt expansion escape sequences.
+# See http://zsh.sourceforge.net/Doc/Release/Prompt-Expansion.html#Simple-Prompt-Escapes
+# If none is provided, the default '%n@%m: %~' is used.
+zstyle ':zim:termtitle' format '%m'
+
+#
+# zsh-autosuggestions
+#
+
+# Disable automatic widget re-binding on each precmd. This can be set when
+# zsh-users/zsh-autosuggestions is the last module in your ~/.zimrc.
+ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
+# Customize the style that the suggestions are shown with.
+# See https://github.com/zsh-users/zsh-autosuggestions/blob/master/README.md#suggestion-highlight-style
+#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
+
+#
+# zsh-syntax-highlighting
+#
+
+# Set what highlighters will be used.
+# See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters.md
+ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
+
+# Customize the main highlighter styles.
+# See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters/main.md#how-to-tweak-it
+#typeset -A ZSH_HIGHLIGHT_STYLES
+#ZSH_HIGHLIGHT_STYLES[comment]='fg=242'
+
+# ------------------
+# Initialize modules
+# ------------------
+
+ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
+
+# Initialize modules.
+source ${ZIM_HOME}/init.zsh
+
+# ------------------------------
+# Post-init module configuration
+# ------------------------------
+
+#
+# zsh-history-substring-search
+#
+
+zmodload -F zsh/terminfo +p:terminfo
+# Bind ^[[A/^[[B manually so up/down works both before and after zle-line-init
+for key ('^[[A' '^P' ${terminfo[kcuu1]}) bindkey ${key} history-substring-search-up
+for key ('^[[B' '^N' ${terminfo[kcud1]}) bindkey ${key} history-substring-search-down
+for key ('k') bindkey -M vicmd ${key} history-substring-search-up
+for key ('j') bindkey -M vicmd ${key} history-substring-search-down
+unset key
+# }}} End configuration added by Zim install
+
+
+#
+# Custom ZSH configuration
+#
+
+# Add common folders to path
+if ! echo $PATH | grep -q /opt/puppetlabs/bin && [ -d /opt/puppetlabs/bin ]; then
+  export PATH=$PATH:/opt/puppetlabs/bin
+fi
+
+#
+# Key bindings
+#
+
+bindkey '^A'	beginning-of-line
+bindkey '^E'	end-of-line
+
+#
+# Custom aliases
+#
+
+# Sudo
+alias @@='sudo -s'
+
+# df on Linux only
+if [[ "$(uname -s)" == "Linux" ]]; then
+  alias df='df -khT -x overlay -x tmpfs -x devtmpfs'
+fi
+
+# Go to puppet dir
+alias cdp="cd /etc/puppetlabs/code/environments/production"
+# Go to Kubernetes dir
+alias cdk="cd /opt/*/kubernetesapp/argocd"
+
+# Listing
+# Only show dot-directories
+alias lad='command ls -d .*(/)'
+# Only show dot-files
+alias lsa='command ls -a .*(.)'
+# Only files with setgid/setuid/sticky flag
+alias lss='command ls -l *(s,S,t)'
+# Only show symlinks
+alias lsl='command ls -l *(@)'
+# Display only executables
+alias lsx='command ls -l *(*)'
+# Display world-{readable,writable,executable} files
+alias lsw='command ls -ld *(R,W,X.^ND/)'
+# Display the ten biggest files
+alias lsbig="command ls -flh *(.OL[1,10])"
+# Only show directories
+alias lsd='command ls -d *(/)'
+# Only show empty directories
+alias lse='command ls -d *(/^F)'
+# Display the ten newest files
+alias lsnew="command ls -rtlh *(D.om[1,10])"
+# Display the ten oldest files
+alias lsold="command ls -rtlh *(D.Om[1,10])"
+# Display the ten smallest files
+alias lssmall="command ls -Srl *(.oL[1,10])"
+# Display the ten newest directories and ten newest .directories
+alias lsnewdir="command ls -rthdl *(/om[1,10]) .*(D/om[1,10])"
+# Display the ten oldest directories and ten oldest .directories
+alias lsolddir="command ls -rthdl *(/Om[1,10]) .*(D/Om[1,10])"
+
+# git-wrapper
+if [[ -d /opt ]]; then
+  for dir in /opt/*; do
+    if [[ -x $dir/devops/tools/bin/git-wrapper ]]; then
+      alias git="$dir/devops/tools/bin/git-wrapper"
+      break
+    fi
+  done
+fi
+
+# Kubernetes aliases and completion
+if [ $commands[kubectl] ]; then
+  # Set default KUBE_NAMESPACE to "default"
+  KUBE_NAMESPACE="default"
+
+  #k = kubectl -n $KUBE_NAMESPACE 
+  k() {
+    # Check if parameter -n or --namespace is present
+    if echo "$@" | grep -qE ' (-n |--namespace[ =])'; then
+      kubectl "$@"
+    else
+      kubectl -n $KUBE_NAMESPACE "$@"
+    fi
+  }
+
+  kl() {
+    OPTS=()
+    RES=
+    FILTER=
+    IGNORE_FILTER=0
+    USE_WATCH=0
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        # -W is for using real watch command
+        -W) USE_WATCH=1 ;;
+        # The below options do not take a 2nd argument as value for parameter
+        -A|--all-namespaces|--no-headers|-R|--recursive|--show-kind|--show-labels|-w|--watch|--watch-only)
+          OPTS+=($1)
+          ;;
+        # The other options take a 2nd argument as value for parameter
+        # It can be in format '--arg val' or '--arg=val'
+        -*)
+          # Check if argument is provided in format arg=val
+          if [[ $1 =~ .=. ]]; then
+            OPTS+=($1)
+            if [[ $1 =~ ^(-o|--output)= ]]; then
+              # If output requested is not wide or name (ie: yaml, json...), do
+              # not filter with grep
+              if [[ ! $1 =~ =(wide|name)$ ]]; then
+                IGNORE_FILTER=1
+              fi
+            fi
+          else
+            OPTS+=($1 $2);
+            if [[ $1 =~ ^(-o|--output)$ ]] && [[ ! $2 =~ ^(wide|name)$ ]]; then
+              IGNORE_FILTER=1
+            fi
+          fi
+          shift
+          ;;
+        *)
+          if [[ -z $RES ]]; then
+            RES=$1
+          elif [[ -z $FILTER ]]; then
+            FILTER=$1
+          else
+            echo "Too many parameters. Usage: kl [OPTIONS] RESOURCE [FILTER]" >&2
+            return 1
+          fi
+          ;;
+      esac
+      shift
+    done
+
+    if [[ -z $RES ]]; then
+      echo "Missing ressource. Usage: kl [OPTIONS] RESOURCE [FILTER]" >&2
+      return 1
+    fi
+
+    if [[ -z $FILTER ]]; then
+      k get $RES "${OPTS[@]}" "$@"
+    elif [[ $IGNORE_FILTER -eq 1 ]]; then
+      k get $RES "${OPTS[@]}" "$@" "$FILTER"
+    elif [[ $USE_WATCH -eq 1 ]]; then
+      watch "kubectl -n $KUBE_NAMESPACE get $RES ${OPTS[@]} | grep -E '$FILTER'"
+    else
+      k get $RES "${OPTS[@]}" "$@" | grep -E "$FILTER"
+    fi
+  }
+
+  # List = get
+  alias klp="kl pod"
+  alias kld="kl deploy"
+  alias kls="kl services"
+  alias kln="kl namespaces"
+  alias klpvc="kl pvc"
+  alias klpv="kl pv"
+  alias klst="kl statefulset.apps"
+  alias klrs="kl replicaset.apps"
+  alias klcm="kl cm"
+  alias klsc="kl secrets"
+  alias kla="kl all"
+
+  alias kg="kl"
+  alias kgp="kl pods"
+  alias kgd="kl deploy"
+  alias kgs="kl services"
+  alias kgn="kl namespaces"
+  alias kgpvc="kl pvc"
+  alias kgpv="kl pv"
+  alias kgst="kl statefulset.apps"
+  alias kgrs="kl replicaset.apps"
+  alias kgcm="kl cm"
+  alias kgsc="kl secrets"
+  alias kga="kl all"
+
+  alias ke="k edit"
+  alias ked="k edit deploy"
+  alias kes="k edit service"
+  alias kest="k edit statefulset.apps"
+  alias kers="k edit replicaset.apps"
+  alias kepvc="k edit pvc"
+  alias kepv="k edit pv"
+  alias kecm="k edit cm"
+  alias kesc="k edit secrets"
+
+  alias kd="k delete"
+  alias kdp="k delete pod"
+  alias kdd="k delete deploy"
+  alias kdst="k delete statefulset.apps"
+  alias kdrs="k delete replicaset.apps"
+  alias kdpvc="k delete pvc"
+  alias kdpv="k delete pv"
+  alias kdcm="k delete cm"
+  alias kdsc="k delete secrets"
+
+  alias ktailf="k logs --tail 10 -f"
+  alias kx="k exec -ti"
+  alias kroll="k rollout restart deploy"
+
+  # Print or select a "default" namespace
+  kn() {
+    # If no parameter given, list all namespace and show the "default" one
+    if [[ $# -eq 0 ]]; then
+      kubectl get namespaces | awk '{
+      if ($1 == "'$KUBE_NAMESPACE'") { printf "\033[32m*\033[0m %s\n", $0 }
+      else { printf "  %s\n", $0 }
+      }'
+
+    # If 1 parameter, set default namespace.
+    elif [[ $# -eq 1 ]]; then
+      # Check if it is a valid namespace
+      if ! kubectl get ns $1 -o yaml > /dev/null 2>&1; then
+        echo -e "\033[31mError:\033[0m namespace '$1' does not exist. Please, select a valid namespace:"
+        kubectl get ns -o name | sed -E 's/namespace./ * /'
+        return
+      fi
+
+      export KUBE_NAMESPACE=$1
+      echo "Set default namespace to '$1'"
+
+    # Otherwise, command not supported
+    else
+      echo "Usage:"
+      echo "  kn                Show all namespaces"
+      echo "  kn <namespace>    Ser default namespace"
+    fi
+  }
+
+  # Do a rolling update on a deployment
+  kpatch() {
+    local opt_namespace
+    local deploy
+    if [[ $# -lt 1 ]]; then
+      echo "Usage: kpatch [ -n NAMESPACE] DEPLOYMENT"
+      echo "Apply a rolling update on a deployment DEPLOYMENT"
+      return 1
+    fi
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        -h|--help) echo "Usage: kpatch [ -n NAMESPACE] DEPLOYMENT" ; return 0 ;;
+        -n|--namespace) opt_namespace="-n $2" ; shift 2 ;;
+        -*) echo "Unknown argument: $1. See usage with --help." >&2; return 1 ;;
+        *) deploy=$1 ; shift ;;
+      esac
+    done
+
+    k $opt_namespace patch deployment $deploy -p '{"spec":{"template":{"metadata":{"labels":{"date":"'$(date +%s)'"}}}}}'
+  }
+
+  __refresh_kubectl_completion() {
+    source <(kubectl completion zsh)
+
+    # Overwrite function __kubectl_override_flags() to support completion with
+    # namespace defined using KUBE_NAMESPACE environment variable.
+    # The function overridden add the following things:
+    #   if command used is 'k' (and not 'kubectl')
+    #   and if no namespace is provided in command line (using -n or --namespace flags)
+    #   then we use KUBE_NAMESPACE as the namespace defined
+    __kubectl_override_flags()
+    {
+        local ${__kubectl_override_flag_list[*]##*-} two_word_of of var
+        local KUBECTL_USED NS_DEFINED
+
+        KUBECTL_USED=0
+        for w in "${words[@]}"; do
+            if [[ $w = "kubectl" ]]; then
+                KUBECTL_USED=1
+            fi
+            if [ -n "${two_word_of}" ]; then
+                eval "${two_word_of##*-}=\"${two_word_of}=\${w}\""
+                two_word_of=
+                continue
+            fi
+            for of in "${__kubectl_override_flag_list[@]}"; do
+                case "${w}" in
+                    ${of}=*)
+                        eval "${of##*-}=\"${w}\""
+                        ;;
+                    ${of})
+                        two_word_of="${of}"
+                        ;;
+                esac
+            done
+        done
+
+        NS_DEFINED=0
+        for var in "${__kubectl_override_flag_list[@]##*-}"; do
+            if eval "test -n \"\$${var}\""; then
+                if [[ $var =~ ^(n|namespace)$ ]]; then
+                    $NS_DEFINED=1
+                fi
+                eval "echo \${${var}}"
+            fi
+        done
+
+        if [[ $KUBECTL_USED -eq 0 ]]; then
+            if [[ $NS_DEFINED -eq 0 ]]; then
+                if [[ -n $KUBE_NAMESPACE ]]; then
+                    echo "-n $KUBE_NAMESPACE"
+                fi
+            fi
+        fi
+    }
+
+    # Alias completion of 'k' to 'kubectl'
+    compdef k='kubectl'
+  }
+
+else
+  __refresh_kubectl_completion() {
+    # Nothing to do
+    true
+  }
+fi
+
+# Set custom dircolors, except on Mac OS
+if which dircolors > /dev/null 2>&1 && test -f ~/.dircolors.custom;  then
+  eval $(dircolors ~/.dircolors.custom)
+fi
+
+# Trick for du on MAC OS X
+_du() {
+if _pick_variant gnu=Free\ Soft unix --version /dummy/no-such-file; then
+  local context state line expl ret=1
+
+  _arguments -s \
+    '(-a --all -s --summarize)'{-a,--all}'[write counts for all files]' \
+    '--apparent-size[print apparent sizes rather than disc usage]' \
+    '(-B --block-size -k)'{-B,--block-size=}'[specify block size]:size (bytes)' \
+    '(-B --block-size -k --apparent-size -b --bytes)'{-b,--bytes}'[equivalent to --apparent-size --block-size=1]' \
+    '(-c --total)'{-c,--total}'[produce a grand total]' \
+    '(-H -D --dereference-args -L --dereference -P --no-dereference)'{-H,-D,--dereference-args}'[dereference arguments that are symlinks]' \
+    '(-H -D --dereference-args -L --dereference -P --no-dereference)'{-P,--no-dereference}'[do not dereference any symlinks]' \
+    '(-h --human-readable -H --si)'{-h,--human-readable}'[print sizes in human readable format]' \
+    '(--si -h --human-readable)--si[human readable form using powers of 1000]' \
+    '(-B --block-size)-k[use block size of 1k]' \
+    '(-B --block-size)-m[use block size of 1M]' \
+    '(-l --count-links)'{-l,--count-links}'[count sizes many times if hard linked]' \
+    '(-L --dereference -H -D --dereference-args -P --no-dereference)'{-L,--dereference}'[dereference all symlinks]' \
+    '(-S --separate-dirs)'{-S,--separate-dirs}'[do not include size of subdirectories]' \
+    '(-s --summarize --max-depth -a --all)'{-s,--summarize}'[only report total for each argument]' \
+    '(-x --one-file-system)'{-x,--one-file-system}'[skip directories on different filesystems]' \
+    '(-0 --null)'{-0,--null}'[end each output line with NUL instead of newline]' \
+    \*{-X+,--exclude-from=}'[exclude files matching any pattern in file]:file:_files' \
+    '*--exclude=[exclude files matching pattern]:pattern' \
+    '(-s --summarize)--max-depth=[maximum levels to recurse]:levels' \
+    '--files0-from=[use NUL-terminated list of files from file]:file:_files' \
+    '--time-style=[show times using given style, +FORMAT for strftime formatted args]:style:->timestyle' \
+    '--time=-[show time of last modification of any file in the directory]:property:(atime access use ctime status)' \
+    '(-t --threshold)'{-t+,--threshold=}'[report only entries for which size exceeds threshold]:threshold' \
+    '(* -)--help[display help information]' \
+    '(* -)--version[display version information]' \
+    '*:file:_files' && ret=0
+
+  case $state in
+    (timestyle)
+      local -a style desc
+      style=(full-iso long-iso iso +)
+      desc=('full-iso' 'long-iso' 'iso' '+FORMAT like `date'\''')
+      _wanted -C $context -V style expl style compadd -d desc -a style && ret=0
+    ;;
+  esac
+
+  return ret
+
+else
+  local pattern arg args
+  args=(
+    '(-a -s -d)-a[report sizes for all files, not just directories]'
+    '(-H -L -P)-L[follow all symlinks]'
+    '(-a -s -d)-s[only report total for each argument]'
+    '(-h -m -g -B)-k[use block size of 1K-byte]'
+    '-r[notify about unreadable files/directories]'
+  )
+  local xdev='[skip directories on different filesystems]'
+  for pattern arg in \
+    'freebsd*' '-A[apparent size instead of usage]' \
+    '(darwin*|*bsd*|dragonfly*|solaris2.<10->)' '(-H -L -P)-H[follow symlinks on the command line]' \
+    '(darwin|*bsd|dragonfly)*' '(-H -L -P)-P[do not follow symlinks (default)]' \
+    '(darwin|dragonfly|freebsd)*' '*-I+[ignore files/directories matching specified mask]:mask' \
+    '(darwin|*bsd|dragonfly)*' '(-a -s -d)-d+[display entry for directories up to specified depth]:depth' \
+    '(darwin*|*bsd*|dragonfly*|solaris2.<10->)' '(-k -m -g -B)-h[human readable output]' \
+    'netbsd*' '-i[output inode usage instead of blocks]' \
+    '(darwin*|freebsd*|netbsd*|solaris2.<11->)' '(-h -k -g -B)-m[use block size of 1M-byte]' \
+    '(darwin|freebsd<8->.|netbsd)*' '(-h -k -m -B)-g[use block size of 1G-byte]' \
+    'freebsd*' '(-h -k -m -g)-B[block size]:block size (bytes)' \
+    '(darwin|*bsd|dragonfly)*' '-c[display grand total]' \
+    'freebsd*' '-l[count sizes many times if hard linked]' \
+    '(freebsd|netbsd)*' '-n[ignore files and directories with nodump flag set]' \
+    'solaris*' "(-a)-o[don't add child directories' usage to parent's total]" \
+    'freebsd<8->.*' '-t+[report only entries for which size exceeds threshold]:threshold' \
+    'solaris*' "-d$xdev" \
+    '(darwin|*bsd|dragonfly|solaris)*' "-x$xdev"
+  do
+    [[ $OSTYPE = $~pattern ]] && args+=( $arg )
+  done
+  _arguments -s -A "-*" $args '*:files:_files'
+fi
+}
+
+on_darwin() {
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    return 0
+  fi
+  return 1
+}
+
+ssh_load_identities() {
+  if on_darwin; then
+    SSH_ADD_OPT="-K -A"
+  fi
+
+  ssh-add -L > /dev/null 2>&1
+  [ $? -ne 0 ] && ssh-add $SSH_ADD_OPT > /dev/null 2>&1
+}
+
+update_ssh_auth_sock() {
+  if [ -z $SSH_AUTH_SOCK ] || [ ! -L $SSH_AUTH_SOCK ] || [[ "$SSH_AUTH_SOCK" != "$HOME/.sshagent.sock" ]] || ! ssh-add -l > /dev/null 2>&1 ; then
+    if which sshauth > /dev/null 2>&1; then
+      sshauth -l $HOME/.sshagent.sock
+    else
+      if on_darwin; then
+        SSH_AUTH_SOCK=$(find /private/tmp/ -path "*/com.apple.launchd.*" -name "Listeners" -uid $(id -u) -maxdepth 2 2> /dev/null | xargs ls -r | tr ' ' '\n' | head -n1)
+      else
+        SSH_AUTH_SOCK=$(find /tmp/ -path "*/ssh-*" -name "agent.*" -uid $(id -u) -maxdepth 2 2>/dev/null | xargs ls -r | tr ' ' '\n' | head -n1)
+      fi
+      if [[ ! -z $SSH_AUTH_SOCK ]]; then
+        ln -sf $SSH_AUTH_SOCK $HOME/.sshagent.sock
+      else
+        echo "Could not find valid SSH agent socker" >&2
+      fi
+    fi
+    export SSH_AUTH_SOCK=$HOME/.sshagent.sock
+  fi
+}
+
+list_ssh_auth_sock() {
+    if which sshauth > /dev/null 2>&1; then
+      sshauth -a
+    else
+      find /tmp/ -path "*/ssh-*" -name "agent.*" -uid $(id -u) -exec ls -l '{}' \; 2>/dev/null
+    fi
+}
+
+
+alias ssh='ssh_load_identities ; update_ssh_auth_sock ; ssh'
+
+start_tmux() {
+  TMUX_SOCK_PATH="/tmp/tmux-$(id -u)/default"
+  if [ -S $TMUX_SOCK_PATH ]; then
+    TMUX_SOCK="-S $TMUX_SOCK_PATH"
+  fi
+
+  # Start tmux if not already in a tmux/screen session
+  if [[ -z $TMUX ]] && [[ $TERM != screen* ]]; then
+    # Start tmux
+    if which tmux > /dev/null 2>&1; then
+      #if not inside a tmux session, and if no session is started, start a new session
+      (tmux attach || tmux new-session)
+    fi
+  fi
+}
+
+mssh() {
+  HOSTS_LIST=""
+  while read line; do
+    HOSTS_LIST="$HOSTS_LIST $line"
+  done
+  HOSTS_LIST=$(echo $HOSTS_LIST | tr '[\r\n\t ]+' ' ' | sed -E 's/(^ +| +$)//g' | sed -E 's/ +/ /g')
+
+  #echo "HOSTS_LIST=$HOSTS_LIST"
+
+  if [ -z "$HOSTS_LIST" ]; then
+    echo "No host was provided."
+    echo "Usage:"
+    echo '  echo $LIST_OF_HOSTS" | mssh CMD'
+    return 1
+  fi
+
+  IFS=$' '
+  for SERVER in $(echo $HOSTS_LIST); do
+    echo -e "\033[32m[$SERVER]\033[0m"
+    ssh $SERVER "$@"
+  done
+
+}
+
+mscp() {
+
+  if [[ $1 =~ "(-h|--help)" ]] || [[ $# -ne 4 ]]; then
+    echo "Usage:
+  1. Upload mode: mscp FILE_OR_DIR_TO_COPY serverA serverB PATH
+       Will copy FILE_OR_DIR_TO_COPY from localhost on serverB passing through serverA
+  2. Download mode: mscp serverA serverB FILE_OR_DIR_TO_COPY PATH
+       Will copy FILE_OR_DIR_TO_COPY from serverB passing through serverA on localhost"
+    return 1
+  fi
+
+  # Check if first argument is a file/directory or a server
+  if [[ -e "$1" ]]; then
+    if [[ -f "$1" ]] || [[ -d "$1" ]]; then
+      MODE="UPLOAD"
+    else
+      echo "Error: \"$1\" exists on disk, but is not a regular file or directory." >&2
+      return 1
+    fi
+  else
+    MODE="DOWNLOAD"
+  fi
+
+
+  if [[ "$MODE" == "UPLOAD" ]]; then
+    SRC_FILE=$1
+    SERVERA=$2
+    SERVERB=$3
+    DST_PATH=$4
+  else
+    SERVERA=$1
+    SERVERB=$2
+    SRC_FILE=$3
+    DST_PATH=$4
+  fi
+
+  # Check if DST_PATH is valid
+  if [[ ! -d "$DST_PATH" ]]; then
+    echo "Error: \"$DST_PATH\" is not a valid directory." >&2
+    return 1
+  fi
+
+  # Check if `pv` command exist, otherwise use `cat`
+  which pv > /dev/null 2>&1 && CAT_CMD="pv" || CAT_CMD="cat -"
+
+  SRC_FILENAME=$(basename $SRC_FILE)
+  SRC_FILEPATH=$(dirname $SRC_FILE)
+
+
+  if [[ "$MODE" == "UPLOAD" ]]; then
+    CMD=$(printf 'tar -czf - -C "%s" "%s" | %s | base64 | "ssh" %s '"'"'"ssh" %s "cat - | ( [[ $(uname -s) == Darwin ]] && base64 -D || base64 -d ) | tar -xzf - -C \"%s\""'"'" "$SRC_FILEPATH" "$SRC_FILENAME" "$CAT_CMD" "$SERVERA" "$SERVERB" "$DST_PATH")
+  elif [[ "$MODE" == "DOWNLOAD" ]]; then
+    CMD=$(printf 'ssh %s '"'"'"ssh" %s "tar czf - -C \"%s\" \"%s\" | base64"'"'"' | ( [[ $(uname -s) == Darwin ]] && base64 -D || base64 -d ) | %s | tar xzf - -C "%s" ' "$SERVERA" "$SERVERB" "$SRC_FILEPATH" "$SRC_FILENAME" "$CAT_CMD" "$DST_PATH")
+  fi
+
+  echo Executing: $CMD
+  eval $CMD
+  echo Done!
+
+}
+
+set_tmux_title() {
+  printf "\033k$1\033\\"
+}
+
+myrcopy() {
+  local _MYRCOPY_TOKEN
+
+  if  ! which curl > /dev/null 2>&1; then
+    echo "Error: curl not found. Please, install it."
+    return 1
+  fi
+
+  # Check if Transfer token is in environment variable. Otherwise, ask for it.
+  if [ -n "$MYRCOPY_TOKEN" ]; then
+    _MYRCOPY_TOKEN=$MYRCOPY_TOKEN
+  else
+    echo "A token is required to push on transfer.coulmier.fr."
+    echo "The token can be present in environment variable \$MYRCOPY_TOKEN, but"
+    echo "this variable is currently empty. Set it to skip this next time."
+    echo -n "Enter token for transfer.coulmier.fr: "
+    read -s _MYRCOPY_TOKEN 
+    echo
+  fi
+
+
+  if [ $# -eq 0 ];then
+    echo "No arguments specified.\nUsage:\n transfer <file|directory>\n ... | transfer <file_name>">&2;return 1;
+  fi;
+  if tty -s;then
+    file="$1";file_name=$(basename "$file");
+    [ -n "${2}" ] &&  _max_dl="${2}" || _max_dl=1
+    [ ${_max_dl} -eq 0 ] && _max_dl=100
+
+    if [ ! -e "$file" ];then
+      echo "$file: No such file or directory">&2;return 1;
+    fi;
+    if [ -d "$file" ];then
+      dir_name="$file_name"
+      file_name="$file_name.tar.gz"
+      (tar czf - -C $file/.. $dir_name) | curl -H "X-Transfer-Token: $_MYRCOPY_TOKEN" -H "Max-Downloads: ${_max_dl}" -H "Max-Days: 1" --upload-file "-" "https://transfer.coulmier.fr/$file_name"| tee /dev/null;
+    else
+      cat "$file" | curl -H "X-Transfer-Token: $_MYRCOPY_TOKEN" -H "Max-Downloads: ${_max_dl}" -H "Max-Days: 1" --upload-file "-" "https://transfer.coulmier.fr/$file_name"| tee /dev/null;
+    fi;
+  else
+      file_name=$1
+      curl -H "X-Transfer-Token: $_MYRCOPY_TOKEN" -H "Max-Downloads: ${_max_dl}" -H "Max-Days: 1" --upload-file "-" "https://transfer.coulmier.fr/$file_name"| tee /dev/null;
+  fi;
+  echo ""
+}
+
+myrpaste() {
+  URL=$1
+  if [[ ! $URL =~ ^http ]]; then
+    echo "Error: 1st parameter must be an URL"
+  fi
+
+  filename=$(basename $URL)
+
+  curl -o $filename $URL
+}
+
+try_cd_to_puppet_dir() {
+  # On a server named "*puppet*", with puppet dir present,
+  # "cd" to puppet dir if we are root and cur dir is homedir
+  if [[ -d /etc/puppetlabs/code/environments/production ]] && \
+     [[ $(hostname) =~ puppet ]] && \
+     [[ $(id -u) -eq 0 ]] && \
+     [[ "$(pwd)" == "$HOME" ]]; then
+
+    # All conditions are meet
+    cd /etc/puppetlabs/code/environments/production/
+  fi
+}
+
+
+START_TMUX=0
+ENABLE_KUBECTL_COMPLETION=1
+
+test -f /etc/kubernetes/admin.conf && export KUBECONFIG=/etc/kubernetes/admin.conf
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+update_ssh_auth_sock > /dev/null 2>&1
+
+[ -f ~/.zshrc.local ] && . ~/.zshrc.local
+
+#
+# Everything after that is done after .zshrc.local file is loaded
+#
+
+
+# Commands from sr-tools
+
+
+if [ ! $commands[rssh] ]; then
+rssh() {
+  echo "Please, install sr-tools package"
+  return 1
+}
+fi
+
+if [ ! $commands[ssh_multi] ]; then
+ssh_multi() {
+  echo "Please, install sr-tools package"
+  return 1
+}
+fi
+
+if [ ! $commands[tpaste] ]; then
+tpaste() {
+  echo "Please, install sr-tools package"
+  return 1
+}
+fi
+
+if [ ! $commands[tcopy] ]; then
+tcopy() {
+  echo "Please, install sr-tools package"
+  return 1
+}
+fi
+
+if [ ! $commands[es] ]; then
+es() {
+  echo "Please, install sr-tools package"
+  return 1
+}
+fi
+
+
+if [ ! $commands[lh] ]; then
+lh() {
+  echo "Please, install sr-tools package"
+}
+fi
+
+if [ ! $commands[slh] ]; then
+slh() {
+  echo "Please, install sr-tools package"
+}
+fi
+
+if [ ! $commands[delay] ]; then
+delay() {
+  echo "Please, install sr-tools package"
+  return 1
+}
+fi
+
+if [ ! $commands[rcopy] ]; then
+rcopy() {
+  echo "Please, install sr-tools package"
+  return 1
+}
+fi
+
+if [ ! $commands[rpaste] ]; then
+rpaste() {
+  echo "Please, install sr-tools package"
+  return 1
+}
+fi
+
+if [ ! $commands[lower] ]; then
+  alias lower='tr "A-Z" "a-z"'
+fi
+
+if [ ! $commands[upper] ]; then
+  alias upper='tr "a-z" "A-Z"'
+fi
+
+# Other stuff
+
+if [[ $START_TMUX -eq 1 ]]; then
+  start_tmux
+fi
+
+if [[ $ENABLE_KUBECTL_COMPLETION -eq 1 ]]; then
+  __refresh_kubectl_completion
+fi
+
+try_cd_to_puppet_dir
+
+unset START_TMUX ENABLE_KUBECTL_COMPLETION

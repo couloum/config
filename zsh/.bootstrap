@@ -1,8 +1,9 @@
-.zprezto -
-.zlogin zprezto/runcoms/zlogin
-.zlogout zprezto/runcoms/zlogout
-.zshrc.custom zprezto/runcoms/zshrc
-.zprofile zprezto/runcoms/zprofile
-.zshenv zprezto/runcoms/zshenv
-.zpreztorc zprezto/runcoms/zpreztorc
+.zim -
+.zimrc -
+.zshrc.custom -
+.zprofile -
+.zshenv -
 .dircolors.custom -
+# Remove these files that were previously created
+.zlogin _
+.zlogout _

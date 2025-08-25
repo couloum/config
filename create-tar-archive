@@ -1,0 +1,36 @@
+#!/bin/bash
+
+cd $(dirname $0)
+
+# Ensure that git repo is in clean state
+GIT_STATUS=$(git status --porcelain 2>&1)
+if [[ -n $GIT_STATUS ]]; then
+  echo "Error: Git repository is not in a clean state. Please commit or stash your changes first." >&2
+  exit 1
+fi
+
+# Get last commit short hash
+GIT_HASH=$(git show --oneline | head -n1 | awk '{print $1}')
+
+if [[ -z $GIT_HASH ]]; then
+  echo "Error: cannot find hash of last git commit" >&2
+  exit 1
+fi
+
+# Create the archive with version
+echo "Creating archive with version $GIT_HASH..."
+touch version-$GIT_HASH
+tar czf myconfig.tar.gz \
+  --exclude ".git" \
+  --exclude ".gitignore" \
+  --exclude ".gitmodules" \
+  --exclude "myconfig-*.tar.gz" \
+  --exclude "myconfig.tar.gz" \
+  --exclude "create-tar-archive" \
+  --exclude "update" \
+  --exclude "README.md" \
+  --exclude "LICENSE" \
+  .
+rm -f version-$GIT_HASH
+echo "Archive created:"
+ls -lh myconfig.tar.gz
