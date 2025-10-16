@@ -1,5 +1,8 @@
-if (( ${+ZIM_HOME} )) zimfw() { source "${HOME}/.zim/zimfw.zsh" "${@}" }
-fpath=("${HOME}/.zim/modules/git/functions" "${HOME}/.zim/modules/utility/functions" "${HOME}/.zim/modules/duration-info/functions" "${HOME}/.zim/modules/git-info/functions" "${HOME}/.zim/modules/prompt-pwd/functions" "${HOME}/.zim/modules/zsh-completions/src" ${fpath})
+# FILE AUTOMATICALLY GENERATED FROM /Users/fcoulmier/.zimrc
+# EDIT THE SOURCE FILE AND THEN RUN zimfw build. DO NOT DIRECTLY EDIT THIS FILE!
+
+if [[ -e ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]] zimfw() { source "${HOME}/.zim/zimfw.zsh" "${@}" }
+fpath=("${HOME}/.zim/modules/git/functions" "${HOME}/.zim/modules/utility/functions" "${HOME}/.zim/modules/duration-info/functions" "${HOME}/.zim/modules/git-info/functions" "${HOME}/.zim/modules/prompt-pwd/functions" "${HOME}/.zim/modules/zsh-completions/src" "${HOME}/.zim/modules/completion/functions" ${fpath})
 autoload -Uz -- git-alias-lookup git-branch-current git-branch-delete-interactive git-branch-remote-tracking git-dir git-ignore-add git-root git-stash-clear-interactive git-stash-recover git-submodule-move git-submodule-remove mkcd mkpw duration-info-precmd duration-info-preexec coalesce git-action git-info prompt-pwd
 source "${HOME}/.zim/modules/environment/init.zsh"
 source "${HOME}/.zim/modules/git/init.zsh"
