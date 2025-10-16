@@ -68,9 +68,16 @@ zstyle ':zim:termtitle' format '%m'
 # zsh-users/zsh-autosuggestions is the last module in your ~/.zimrc.
 ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 
+# Customize what is displayed in the suggestion.
+# See https://github.com/zsh-users/zsh-autosuggestions/blob/master/README.md#suggestion-strategy
+ZSH_AUTOSUGGEST_STRATEGY=(completion history)
+
 # Customize the style that the suggestions are shown with.
 # See https://github.com/zsh-users/zsh-autosuggestions/blob/master/README.md#suggestion-highlight-style
-#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
+
+# Define a maximum buffer for autosuggestion to avoid consumming too many resources
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 
 #
 # zsh-syntax-highlighting
